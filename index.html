@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jizzat Rankings</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: #1a1a2e;
+            color: #eee;
+            font-family: 'MS Gothic', 'Consolas', monospace;
+            padding: 30px 20px;
+            line-height: 1.5;
+        }
+        
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: #16213e;
+            border: 1px solid #0f3460;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .title-bar {
+            background: #0f3460;
+            color: #e94560;
+            padding: 8px 15px;
+            font-weight: bold;
+            border-bottom: 1px solid #533483;
+            letter-spacing: 1px;
+        }
+        
+        .content {
+            padding: 25px;
+        }
+        
+        header {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #0f3460;
+        }
+        
+        h1 {
+            font-size: 1.6em;
+            color: #e94560;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            color: #888;
+            font-size: 0.9em;
+        }
+        
+        .info-bar {
+            background: #0f1925;
+            border: 1px solid #0f3460;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .info-bar span {
+            color: #e94560;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95em;
+        }
+        
+        thead {
+            background: #0f3460;
+            color: #eee;
+        }
+        
+        th {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 2px solid #533483;
+            font-weight: normal;
+        }
+        
+        th:first-child { width: 70px; text-align: center; }
+        th:last-child { width: 130px; text-align: right; }
+        
+        tbody tr {
+            border-bottom: 1px solid #0f3460;
+            transition: background 0.15s;
+        }
+        
+        tbody tr:hover {
+            background: #1a2332;
+        }
+        
+        tbody tr.podium {
+            background: #1f1f3a;
+        }
+        
+        tbody tr.podium:hover {
+            background: #252545;
+        }
+        
+        td {
+            padding: 9px 12px;
+        }
+        
+        .rank {
+            text-align: center;
+            color: #ccc;
+        }
+        
+        .podium .rank {
+            color: #ffd700;
+            font-weight: bold;
+        }
+        
+        .username a {
+            color: #eee;
+            text-decoration: none;
+        }
+        
+        .username a:hover {
+            color: #e94560;
+        }
+        
+        .score {
+            text-align: right;
+            color: #aaa;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .podium .score {
+            color: #e94560;
+            font-weight: bold;
+        }
+        
+        footer {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #0f3460;
+            font-size: 0.85em;
+            color: #666;
+            text-align: center;
+        }
+        
+        footer a {
+            color: #e94560;
+            text-decoration: none;
+        }
+        
+        footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #888;
+            padding: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title-bar">JIZZAT GLOBAL RANKINGS</div>
+        <div class="content">
+            <header>
+                <h1>Global Leaderboard</h1>
+                <p class="subtitle">updated daily</p>
+            </header>
+            
+            <div class="info-bar">
+                <div>Last update: <span id="update-time">...</span></div>
+                <div>Total ranked: <span id="total-users">...</span></div>
+            </div>
+            
+            <div id="rankings">
+                <div class="loading">Loading...</div>
+            </div>
+            
+            <footer>
+                <p><a href="jizzat.json">raw json</a></p>
+            </footer>
+        </div>
+    </div>
+    
+    <script>
+        async function loadRankings() {
+            try {
+                const response = await fetch('jizzat.json');
+                const data = await response.json();
+                
+                const now = new Date();
+                document.getElementById('update-time').textContent = 
+                    now.toISOString().split('T')[0];
+                document.getElementById('total-users').textContent = data.length;
+                
+                const container = document.getElementById('rankings');
+                
+                let html = '<table><thead><tr><th>Rank</th><th>User</th><th>Score</th></tr></thead><tbody>';
+                
+                data.forEach(user => {
+                    const rowClass = user.rank <= 3 ? 'podium' : '';
+                    html += `
+                        <tr class="${rowClass}">
+                            <td class="rank">${user.rank}</td>
+                            <td class="username"><a href="${user.link}" target="_blank">${user.username}</a></td>
+                            <td class="score">${user.jizzat.toLocaleString()}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table>';
+                container.innerHTML = html;
+            } catch (error) {
+                document.getElementById('rankings').innerHTML = 
+                    '<div class="loading">Failed to load rankings</div>';
+                console.error('Error:', error);
+            }
+        }
+        
+        loadRankings();
+    </script>
+</body>
+</html>
