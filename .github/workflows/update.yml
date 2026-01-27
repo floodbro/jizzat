@@ -1,0 +1,47 @@
+name: Update Jizzat Scores
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Fetch and parse VNDB data
+        run: |
+          curl -s "${{ secrets.VNDB_QUERY_URL }}" > temp.html
+          
+          python3 << 'EOF'
+          import re
+          import json
+          
+          with open('temp.html', 'r') as f:
+              html = f.read()
+          
+          rows = re.findall(r'<tr>\s*<td class="int">(\d+)</td>\s*<td>([^<]+)</td>\s*<td>\s*<a href="([^"]+)">[^<]+</a>\s*</td>\s*<td class="int">(\d+)</td>\s*</tr>', html)
+          
+          data = []
+          for rank, username, link, jizzat in rows:
+              data.append({
+                  "rank": int(rank),
+                  "username": username,
+                  "link": link,
+                  "jizzat": int(jizzat)
+              })
+          
+          with open('jizzat.json', 'w') as f:
+              json.dump(data, f, indent=2)
+          EOF
+          
+          rm temp.html
+          
+      - name: Commit results
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@example.com"
+          git add jizzat.json
+          git commit -m "Update scores" || echo "No changes"
+          git push
