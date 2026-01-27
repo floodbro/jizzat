@@ -30,27 +30,29 @@
             font-weight: bold;
             border-bottom: 1px solid #533483;
             letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .tagline {
+            font-size: 0.75em;
+            font-weight: normal;
+            color: #aaa;
+        }
+        
+        .tagline a {
+            color: #aaa;
+            text-decoration: none;
+        }
+        
+        .tagline a:hover {
+            color: #e94560;
+            text-decoration: underline;
         }
         
         .content {
             padding: 25px;
-        }
-        
-        header {
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #0f3460;
-        }
-        
-        h1 {
-            font-size: 1.6em;
-            color: #e94560;
-            margin-bottom: 5px;
-        }
-        
-        .subtitle {
-            color: #888;
-            font-size: 0.9em;
         }
         
         .info-bar {
@@ -168,13 +170,11 @@
 </head>
 <body>
     <div class="container">
-        <div class="title-bar">JIZZAT GLOBAL RANKINGS</div>
+        <div class="title-bar">
+            <span>JIZZAT GLOBAL RANKINGS</span>
+            <span class="tagline">Jizzat = JOP <a href="https://en.wikipedia.org/wiki/Izzat_(honour)" target="_blank">Izzat</a></span>
+        </div>
         <div class="content">
-            <header>
-                <h1>Global Leaderboard</h1>
-                <p class="subtitle">updated daily</p>
-            </header>
-            
             <div class="info-bar">
                 <div>Last update: <span id="update-time">...</span></div>
                 <div>Total ranked: <span id="total-users">...</span></div>
@@ -193,23 +193,51 @@
     <script>
         async function loadRankings() {
             try {
-                const response = await fetch('jizzat.json');
-                const data = await response.json();
+                // Load both files in parallel
+                const [rankingsResponse, cheatersResponse] = await Promise.all([
+                    fetch('jizzat.json'),
+                    fetch('cheaters.txt').catch(() => ({ ok: false }))
+                ]);
+                
+                const data = await rankingsResponse.json();
+                
+                // Parse cheaters list if file exists
+                let cheaters = new Set();
+                if (cheatersResponse.ok) {
+                    const cheatersText = await cheatersResponse.text();
+                    cheaters = new Set(
+                        cheatersText
+                            .split('\n')
+                            .map(line => line.trim())
+                            .filter(line => line.length > 0)
+                    );
+                }
+                
+                // Filter out cheaters and extract user ID from link
+                const filtered = data.filter(user => {
+                    const userId = user.link.split('/').pop(); // Extract uXXXX from URL
+                    return !cheaters.has(userId);
+                });
+                
+                // Take only top 100
+                const top100 = filtered.slice(0, 100);
                 
                 const now = new Date();
                 document.getElementById('update-time').textContent = 
                     now.toISOString().split('T')[0];
-                document.getElementById('total-users').textContent = data.length;
+                document.getElementById('total-users').textContent = top100.length;
                 
                 const container = document.getElementById('rankings');
                 
                 let html = '<table><thead><tr><th>Rank</th><th>User</th><th>Score</th></tr></thead><tbody>';
                 
-                data.forEach(user => {
-                    const rowClass = user.rank <= 3 ? 'podium' : '';
+                // Re-rank the top 100
+                top100.forEach((user, index) => {
+                    const displayRank = index + 1;
+                    const rowClass = displayRank <= 3 ? 'podium' : '';
                     html += `
                         <tr class="${rowClass}">
-                            <td class="rank">${user.rank}</td>
+                            <td class="rank">${displayRank}</td>
                             <td class="username"><a href="${user.link}" target="_blank">${user.username}</a></td>
                             <td class="score">${user.jizzat.toLocaleString()}</td>
                         </tr>
