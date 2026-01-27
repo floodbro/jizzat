@@ -222,7 +222,7 @@
                 const top100 = filtered.slice(0, 100);
                 
                 const now = new Date();
-                
+                document.getElementById('update-time').textContent = now.toISOString().split('T')[0];
                 const container = document.getElementById('rankings');
                 
                 let html = '<table><thead><tr><th>Rank</th><th>User</th><th>Score</th></tr></thead><tbody>';
