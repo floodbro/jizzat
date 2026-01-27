@@ -222,9 +222,6 @@
                 const top100 = filtered.slice(0, 100);
                 
                 const now = new Date();
-                document.getElementById('update-time').textContent = 
-                    now.toISOString().split('T')[0];
-                document.getElementById('total-users').textContent = top100.length;
                 
                 const container = document.getElementById('rankings');
                 
