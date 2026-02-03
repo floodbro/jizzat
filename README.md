@@ -1,3 +1,3 @@
-# [jizzat](https://floodbro.github.io/jizzat/)
+# [Jizzat Leaderboard](https://floodbro.github.io/jizzat/)
 
 Nukige 2.0+ are excluded, sorry jopcoomerbros...
