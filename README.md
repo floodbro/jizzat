@@ -1,1 +1,3 @@
-# jizzat
+# [jizzat](https://floodbro.github.io/jizzat/)
+
+Nukige 2.0+ are excluded, sorry jopcoomerbros...
